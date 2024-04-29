@@ -32,10 +32,21 @@ public:
 #endif
   }
  
+#ifdef USING_ROS2 
   template <typename MsgType>
   rosw::Subscriber subscribe(const std::string& topic, uint32_t queue_size,
-                       std::function<void(const std::shared_ptr<MsgType>)> callback);
-
+                             std::function<void(const std::shared_ptr<MsgType const>)> callback)
+  {
+    return _node_impl->create_subscription<MsgType>(topic, queue_size, callback);
+  }
+#elif USING_ROS1
+  template <typename MsgType>
+  rosw::Subscriber subscribe(const std::string& topic, uint32_t queue_size,
+                             boost::function<void(const boost::shared_ptr<const MsgType>)> callback)
+  {
+    return _node_impl.subscribe<MsgType>(topic, queue_size, callback);
+  }
+#endif
   template <typename MsgType>
   rosw::Publisher advertise(const std::string& topic, uint32_t queue_size);
 
@@ -50,12 +61,6 @@ private:
 };
 //-----------------------------------------------------------
 #ifdef USING_ROS2
-template <typename MsgType> inline
-Subscriber NodeHandle::subscribe(const std::string& topic, uint32_t queue_size,
-                                 std::function<void(const std::shared_ptr<MsgType>)> callback)
-{
-  return _node_impl->create_subscription<MsgType>(topic, queue_size, callback);
-}
 
 template <typename MsgType> inline
 Publisher NodeHandle::advertise(const std::string& topic, uint32_t queue_size)
@@ -68,17 +73,13 @@ Publisher NodeHandle::advertise(const std::string& topic, uint32_t queue_size)
 //-----------------------------------------------------------
 
 #ifdef USING_ROS1
-template <typename MsgType> inline
-Subscriber NodeHandle::subscribe(const std::string& topic, uint32_t queue_size,
-                                 std::function<void(const std::shared_ptr<MsgType>)> callback)
-{
-  return _node_impl->subscribe(topic, queue_size, callback);
-}
 
 template <typename MsgType> inline
 Publisher NodeHandle::advertise(const std::string& topic, uint32_t queue_size)
 {
-    return _node_impl->advertise<MsgType>(topic, queue_size);
+  Publisher out;
+  out._pub_impl = _node_impl.advertise<MsgType>(topic, queue_size);
+  return out;
 }
 #endif
 

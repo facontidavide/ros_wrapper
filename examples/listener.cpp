@@ -3,7 +3,7 @@
 #include "spdlog/spdlog.h"
 #include "ros_wrapper/msgs/std_msgs.h"
 
-void chatterCallback(const std::shared_ptr<rosw::std_msgs::String> msg)
+void chatterCallback(const rosw::std_msgs::String_ConstPtr& msg)
 {
   spdlog::info("I heard: [{}]", msg->data);
 }
